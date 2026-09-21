@@ -1,0 +1,24 @@
+# Aerosculpt: Single-Pass Drone Video to Accurate 3D Model Generation System
+# Core Python Dependencies
+
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+python-multipart>=0.0.9
+numpy>=1.24.0
+scipy>=1.11.0
+opencv-python>=4.9.0.80
+pillow>=10.2.0
+open3d>=0.18.0
+pyproj>=3.6.0
+gdal>=3.8.0
+rasterio>=1.3.9
+shapely>=2.0.2
+geojson>=3.1.0
+ultralytics>=8.1.0
+torch>=2.2.0
+torchvision>=0.17.0
+trimesh>=4.1.0
+pytest>=8.0.0
+websockets>=12.0
+tqdm>=4.66.0
