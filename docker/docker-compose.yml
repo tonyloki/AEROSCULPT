@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  aerosculpt-core:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: aerosculpt_system
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../data:/app/data
+    environment:
+      - WORKSPACE_MODE=PRODUCTION
+      - CRS_DEFAULT=EPSG:32643
+    restart: unless-stopped
