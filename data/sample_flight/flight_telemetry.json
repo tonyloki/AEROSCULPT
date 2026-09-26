@@ -1,0 +1,72 @@
+[
+  {
+    "timestamp_sec": 0.0,
+    "frame_index": 0,
+    "latitude": 13.082680,
+    "longitude": 80.270710,
+    "altitude_msl": 120.4,
+    "altitude_rel": 45.0,
+    "pitch": -45.0,
+    "roll": 0.0,
+    "yaw": 35.0,
+    "rtk_fix": true,
+    "accuracy_horizontal": 0.08,
+    "accuracy_vertical": 0.12
+  },
+  {
+    "timestamp_sec": 1.0,
+    "frame_index": 30,
+    "latitude": 13.082710,
+    "longitude": 80.270745,
+    "altitude_msl": 120.6,
+    "altitude_rel": 45.2,
+    "pitch": -45.2,
+    "roll": 0.4,
+    "yaw": 35.5,
+    "rtk_fix": true,
+    "accuracy_horizontal": 0.08,
+    "accuracy_vertical": 0.11
+  },
+  {
+    "timestamp_sec": 2.0,
+    "frame_index": 60,
+    "latitude": 13.082745,
+    "longitude": 80.270782,
+    "altitude_msl": 120.9,
+    "altitude_rel": 45.5,
+    "pitch": -44.8,
+    "roll": -0.2,
+    "yaw": 36.1,
+    "rtk_fix": true,
+    "accuracy_horizontal": 0.07,
+    "accuracy_vertical": 0.10
+  },
+  {
+    "timestamp_sec": 3.0,
+    "frame_index": 90,
+    "latitude": 13.082780,
+    "longitude": 80.270820,
+    "altitude_msl": 121.2,
+    "altitude_rel": 45.8,
+    "pitch": -45.0,
+    "roll": 0.1,
+    "yaw": 36.8,
+    "rtk_fix": true,
+    "accuracy_horizontal": 0.08,
+    "accuracy_vertical": 0.11
+  },
+  {
+    "timestamp_sec": 4.0,
+    "frame_index": 120,
+    "latitude": 13.082820,
+    "longitude": 80.270860,
+    "altitude_msl": 121.5,
+    "altitude_rel": 46.1,
+    "pitch": -45.1,
+    "roll": 0.0,
+    "yaw": 37.2,
+    "rtk_fix": true,
+    "accuracy_horizontal": 0.08,
+    "accuracy_vertical": 0.12
+  }
+]
