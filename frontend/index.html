@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AeroSculpt - Single-Pass Drone Video to Accurate 3D Model Generation System</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Three.js and OrbitControls via CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+</head>
+<body class="aerospace-theme">
+  <!-- Header Bar -->
+  <header class="app-header">
+    <div class="header-left">
+      <div class="logo-box">
+        <svg class="logo-icon" viewBox="0 0 40 40" fill="none">
+          <circle cx="20" cy="20" r="18" stroke="#00f2ff" stroke-width="2" stroke-dasharray="4 2"/>
+          <path d="M20 7L28 27L20 23L12 27L20 7Z" fill="#00f2ff" fill-opacity="0.8"/>
+          <circle cx="20" cy="20" r="3" fill="#10b981"/>
+        </svg>
+        <div class="brand-text">
+          <span class="brand-title">AEROSCULPT</span>
+          <span class="brand-tagline">Capture Once. Reconstruct Reality.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Engineering Targets Ribbon -->
+    <div class="targets-ribbon">
+      <div class="target-badge" id="badge-processing-time">
+        <span class="badge-label">TARGET TIME</span>
+        <span class="badge-value">&le; 15 min</span>
+      </div>
+      <div class="target-badge highlight-green" id="badge-spatial-accuracy">
+        <span class="badge-label">SPATIAL ACCURACY</span>
+        <span class="badge-value">&le; 1.0 m</span>
+      </div>
+      <div class="target-badge highlight-cyan" id="badge-rtk-alignment">
+        <span class="badge-label">RTK/PPK ALIGNMENT</span>
+        <span class="badge-value">5 &ndash; 20 cm</span>
+      </div>
+      <div class="target-badge" id="badge-informative-keyframes">
+        <span class="badge-label">INFORMATIVE KEYFRAMES</span>
+        <span class="badge-value">~500 &ndash; 600</span>
+      </div>
+    </div>
+
+    <div class="header-right">
+      <div class="system-status-indicator" id="system-status-pill">
+        <span class="status-dot"></span>
+        <span class="status-text" id="system-status-text">SYSTEM READY</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Application Workspace -->
+  <div class="main-layout">
+    <!-- Left Navigation / Ingestion & Pipeline Stepper -->
+    <aside class="sidebar-left">
+      <div class="sidebar-section">
+        <h3 class="section-title">
+          <span class="icon">&#9881;</span> FLIGHT DATA INGESTION
+        </h3>
+        
+        <div class="dropzone" id="video-dropzone">
+          <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+            <rect x="2" y="4" width="20" height="16" rx="2.5"/>
+            <polygon points="10,9 16,12 10,15" fill="currentColor"/>
+          </svg>
+          <p class="dropzone-text">Drop UAV Flight Video (.MP4, .MOV)</p>
+          <span class="dropzone-subtext">Single-pass aerial recording (4K / 1080p)</span>
+          <input type="file" id="video-input" accept=".mp4,.mov,.mkv" style="display:none;">
+        </div>
+
+        <div class="telemetry-bar">
+          <div class="telemetry-input-group">
+            <label for="telemetry-input" class="telemetry-btn" id="telemetry-btn">
+              &#128205; Attach GNSS / SRT Log
+            </label>
+            <input type="file" id="telemetry-input" accept=".srt,.json,.csv" style="display:none;">
+          </div>
+          <button class="btn-secondary" id="btn-load-sample">Load Sample Flight</button>
+        </div>
+        <div class="file-loaded-info" id="file-loaded-info" style="display: none;">
+          <span class="file-tag" id="loaded-video-tag">sample_flight.mp4</span>
+          <span class="file-tag" id="loaded-telem-tag">DJI_0042.SRT</span>
+        </div>
+      </div>
+
+      <!-- End-to-End Pipeline Stages Flow -->
+      <div class="sidebar-section pipeline-stages-section">
+        <h3 class="section-title">
+          <span class="icon">&#9783;</span> RECONSTRUCTION PIPELINE
+        </h3>
+        <ul class="stepper-list">
+          <li class="stepper-step active" id="step-uav-input">
+            <div class="step-bullet">1</div>
+            <div class="step-content">
+              <span class="step-title">UAV Input & Telemetry</span>
+              <span class="step-desc">GNSS, IMU, RTK/PPK Ingestion</span>
+            </div>
+          </li>
+          <li class="stepper-step" id="step-quality-keyframe">
+            <div class="step-bullet">2</div>
+            <div class="step-content">
+              <span class="step-title">Quality & Keyframe Engine</span>
+              <span class="step-desc">Blur & Exposure & Disparity (~550 KFs)</span>
+            </div>
+          </li>
+          <li class="stepper-step" id="step-scene-understanding">
+            <div class="step-bullet">3</div>
+            <div class="step-content">
+              <span class="step-title">AI Scene & Motion</span>
+              <span class="step-desc">YOLO Dynamic Masking & Priors</span>
+            </div>
+          </li>
+          <li class="stepper-step" id="step-3d-reconstruction">
+            <div class="step-bullet">4</div>
+            <div class="step-content">
+              <span class="step-title">Adaptive 3D Reconstruction</span>
+              <span class="step-desc">GLUEMAP / Global SfM & Dense MVS</span>
+            </div>
+          </li>
+          <li class="stepper-step" id="step-georeferencing">
+            <div class="step-bullet">5</div>
+            <div class="step-content">
+              <span class="step-title">Georeferencing & Sim(3)</span>
+              <span class="step-desc">UTM CRS Conversion & Metric Scale</span>
+            </div>
+          </li>
+          <li class="stepper-step" id="step-metric-validation">
+            <div class="step-bullet">6</div>
+            <div class="step-content">
+              <span class="step-title">Metric Validation First</span>
+              <span class="step-desc">Geometric & Accuracy Checks</span>
+            </div>
+          </li>
+          <li class="stepper-step" id="step-3d-world">
+            <div class="step-bullet">7</div>
+            <div class="step-content">
+              <span class="step-title">Geospatial 3D World</span>
+              <span class="step-desc">Mesh, Point Cloud & GIS Deliverables</span>
+            </div>
+          </li>
+        </ul>
+
+        <div class="pipeline-progress-container">
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="pipeline-progress-fill" style="width: 0%;"></div>
+          </div>
+          <div class="progress-meta">
+            <span id="current-stage-label">IDLE</span>
+            <span id="progress-percent-label">0%</span>
+          </div>
+        </div>
+
+        <button class="btn-primary" id="btn-run-pipeline">
+          <span class="btn-icon">&#9658;</span> Execute Single-Pass Pipeline
+        </button>
+      </div>
+
+      <!-- Real-Time Execution Console -->
+      <div class="sidebar-section log-console-section">
+        <h3 class="section-title">
+          <span class="icon">&#128421;</span> EXECUTION LOGS
+        </h3>
+        <div class="terminal-log-box" id="terminal-logs">
+          <div class="log-entry sys-ready">[SYSTEM] AeroSculpt Engine Initialized. Ready for flight ingestion.</div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Center 3D Interactive Viewport -->
+    <main class="viewport-center">
+      <div id="three-canvas-container" class="three-viewport">
+        <!-- Floating Viewport Top HUD -->
+        <div class="viewport-hud-top">
+          <div class="hud-stat-chip">
+            <span class="chip-title">CRS</span>
+            <span class="chip-val" id="hud-crs-val">WGS84 / UTM 43N</span>
+          </div>
+          <div class="hud-stat-chip">
+            <span class="chip-title">GSD / RES</span>
+            <span class="chip-val" id="hud-gsd-val">2.8 cm/px</span>
+          </div>
+          <div class="hud-stat-chip">
+            <span class="chip-title">REPROJ ERROR</span>
+            <span class="chip-val" id="hud-rep-err-val">0.78 px</span>
+          </div>
+          <div class="hud-stat-chip highlight-status">
+            <span class="chip-title">VALIDATION</span>
+            <span class="chip-val badge-verified" id="hud-validation-val">VERIFIED</span>
+          </div>
+        </div>
+
+        <!-- 3D Navigation Gizmo / Camera Presets -->
+        <div class="viewport-camera-presets">
+          <button class="btn-cam" id="btn-cam-nadir" title="Top-Down Ortho View">Nadir</button>
+          <button class="btn-cam" id="btn-cam-iso" title="Perspective Isometric">45&deg; Iso</button>
+          <button class="btn-cam" id="btn-cam-drone" title="Drone Flight POV">UAV POV</button>
+          <button class="btn-cam" id="btn-cam-orbit" title="360 Continuous Orbit">Auto-Orbit</button>
+          <button class="btn-cam" id="btn-cam-reset" title="Reset View">Reset</button>
+        </div>
+
+        <!-- Interactive 2-Point Measure Result Banner -->
+        <div class="measure-banner" id="measure-banner" style="display: none;">
+          <div class="measure-item">
+            <span class="measure-lbl">3D DISTANCE:</span>
+            <span class="measure-val" id="m-dist-val">26.24 m</span>
+          </div>
+          <div class="measure-item">
+            <span class="measure-lbl">HORIZ RUN:</span>
+            <span class="measure-val" id="m-horiz-val">25.80 m</span>
+          </div>
+          <div class="measure-item">
+            <span class="measure-lbl">&Delta; ELEVATION:</span>
+            <span class="measure-val" id="m-elev-val">+4.78 m</span>
+          </div>
+          <div class="measure-item">
+            <span class="measure-lbl">SLOPE:</span>
+            <span class="measure-val" id="m-slope-val">10.5&deg;</span>
+          </div>
+          <button class="btn-close-measure" id="btn-close-measure">&times;</button>
+        </div>
+
+        <!-- Evidence-Aware Confidence Legend -->
+        <div class="evidence-legend" id="evidence-legend" style="display: none;">
+          <div class="legend-header">Evidence-Aware 3D</div>
+          <div class="legend-items">
+            <span class="leg-item"><span class="leg-box col-observed"></span> Observed</span>
+            <span class="leg-item"><span class="leg-box col-reconstructed"></span> Reconstructed</span>
+            <span class="leg-item"><span class="leg-box col-inferred"></span> Inferred</span>
+            <span class="leg-item"><span class="leg-box col-unknown"></span> Unknown</span>
+          </div>
+        </div>
+
+        <!-- Bottom Telemetry HUD Bar -->
+        <div class="viewport-hud-bottom">
+          <div class="hud-coord-readout">
+            <span class="coord-label">LAT:</span> <span id="hud-lat" class="coord-val">13.082721&deg; N</span>
+            <span class="coord-label">LON:</span> <span id="hud-lon" class="coord-val">80.270715&deg; E</span>
+            <span class="coord-label">ALT MSL:</span> <span id="hud-alt" class="coord-val">124.6 m</span>
+            <span class="coord-label">RTK FIX:</span> <span id="hud-rtk" class="coord-val val-green">L1/L2 RTK FIX</span>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- Right Control & Analysis Inspector Panel -->
+    <aside class="sidebar-right">
+      <!-- Display Layers Control -->
+      <div class="sidebar-section">
+        <h3 class="section-title">
+          <span class="icon">&#128065;</span> DISPLAY LAYERS
+        </h3>
+        <div class="checkbox-group">
+          <label class="custom-checkbox">
+            <input type="checkbox" id="layer-mesh" checked>
+            <span class="checkmark"></span>
+            Textured 3D Mesh (.OBJ / .GLB)
+          </label>
+          <label class="custom-checkbox">
+            <input type="checkbox" id="layer-pointcloud" checked>
+            <span class="checkmark"></span>
+            Dense Point Cloud (.PLY / .LAS)
+          </label>
+          <label class="custom-checkbox">
+            <input type="checkbox" id="layer-bounding-box" checked>
+            <span class="checkmark"></span>
+            Survey Bounding Box
+          </label>
+          <label class="custom-checkbox">
+            <input type="checkbox" id="layer-drone-path" checked>
+            <span class="checkmark"></span>
+            Drone Flight Path & Cameras
+          </label>
+          <label class="custom-checkbox">
+            <input type="checkbox" id="layer-datum-grid" checked>
+            <span class="checkmark"></span>
+            Metric Datum Grid (10m)
+          </label>
+        </div>
+      </div>
+
+      <!-- Shading & Visualization Modes -->
+      <div class="sidebar-section">
+        <h3 class="section-title">
+          <span class="icon">&#127912;</span> SHADING & ANALYSIS MODES
+        </h3>
+        <div class="radio-pill-group">
+          <button class="pill-btn active" data-mode="texture" id="mode-texture">Photorealistic</button>
+          <button class="pill-btn" data-mode="evidence" id="mode-evidence">Evidence State</button>
+          <button class="pill-btn" data-mode="elevation" id="mode-elevation">Elevation Ramp</button>
+          <button class="pill-btn" data-mode="wireframe" id="mode-wireframe">Wireframe</button>
+        </div>
+      </div>
+
+      <!-- Spatial Measurement Tools -->
+      <div class="sidebar-section">
+        <h3 class="section-title">
+          <span class="icon">&#128293;</span> SPATIAL MEASUREMENT
+        </h3>
+        <p class="tool-hint">Click two points anywhere on the 3D terrain to measure metric baseline and relief.</p>
+        <button class="btn-tool" id="btn-toggle-measure">
+          <span class="tool-icon">&#128207;</span> Activate 2-Point Measure
+        </button>
+        <button class="btn-tool-secondary" id="btn-clear-measure">Clear Measurement</button>
+      </div>
+
+      <!-- Scene Feature Highlights -->
+      <div class="sidebar-section">
+        <h3 class="section-title">
+          <span class="icon">&#127758;</span> SCENE FEATURES
+        </h3>
+        <div class="feature-chips-grid">
+          <span class="scene-chip">Mountains & Bedrock</span>
+          <span class="scene-chip">Snow & Permafrost</span>
+          <span class="scene-chip">Arctic Outpost Buildings</span>
+          <span class="scene-chip">Coastal Fjord Water</span>
+          <span class="scene-chip">Access Roads</span>
+          <span class="scene-chip">Dynamic Vehicles (Masked)</span>
+        </div>
+      </div>
+
+      <!-- GIS Deliverables & Export Hub -->
+      <div class="sidebar-section export-hub-section">
+        <h3 class="section-title">
+          <span class="icon">&#128190;</span> EXPORT DELIVERABLES
+        </h3>
+        <div class="export-grid">
+          <button class="btn-export" id="btn-export-glb" title="Export glTF 2.0 Web 3D Model">
+            <span class="export-ext">GLB</span>
+            <span class="export-sub">3D Mesh</span>
+          </button>
+          <button class="btn-export" id="btn-export-obj" title="Export Wavefront OBJ with MTL">
+            <span class="export-ext">OBJ</span>
+            <span class="export-sub">CAD Mesh</span>
+          </button>
+          <button class="btn-export" id="btn-export-ply" title="Export Dense Point Cloud">
+            <span class="export-ext">PLY</span>
+            <span class="export-sub">Point Cloud</span>
+          </button>
+          <button class="btn-export" id="btn-export-dsm" title="Export GeoTIFF Digital Surface Model">
+            <span class="export-ext">TIFF</span>
+            <span class="export-sub">GeoTIFF DSM</span>
+          </button>
+          <button class="btn-export" id="btn-export-geojson" title="Export Trajectory & Footprint GeoJSON">
+            <span class="export-ext">JSON</span>
+            <span class="export-sub">GeoJSON</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/viewer3d.js"></script>
+  <script src="js/measurement.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
